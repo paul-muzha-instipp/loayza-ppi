@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Tu carrito de compras</h2>
+    <!-- {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %} -->
+    {% if items_carrito %}
+    <div class="table-responsive">
+        <table class="table align-middle table-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Producto</th>
+                    <th>Precio unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items_carrito %}
+                <tr>
+                    <td style="width: 90px;">
+                        {% if item.producto.imagen %}
+                        <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" class="img-thumbnail" width="80">
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ item.producto.nombre }}</strong>
+                        <br>
+                        <small>{{ item.producto.descripcion|truncatechars:40 }}</small>
+                    </td>
+                    <td>${{ item.precio_unitario }}</td>
+                    <td>
+                        <!-- Botón para actualizar item -->
+                        <form method="post" action="{% url 'actualizar_carrito' item.id %}" style="display:flex; align-items:center;">
+                            {% csrf_token %}
+                            <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1" max="99" class="form-control form-control-sm me-2" style="width:60px;">
+                            <button type="submit" class="btn btn-info btn-sm">
+                                <i class="bi bi-arrow-repeat"></i> Actualizar cantidad
+                            </button>
+                        </form>
+                    </td>
+
+                    <td>${{ item.subtotal }}</td>
+                    <td>
+                        <!-- Botón para eliminar item -->
+                        <form method="post" action="{% url 'eliminar_del_carrito' item.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                    <td colspan="2"><strong>${{ total_carrito }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="text-end mt-3">
+        <a href="{% url 'comprar' %}" class="btn btn-success btn-lg">
+            <i class="bi bi-cash-stack"></i> Finalizar compra
+        </a>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        Tu carrito está vacío. <a href="{% url 'categorias' %}">¡Explora nuestros productos!</a>
+    </div>
+    {% endif %}
+
+    <!-- <script>
+        // Espera 2.5 segundos y oculta la alerta si está visible
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                // Solo cierra si no está ya cerrado por el usuario
+                if (alert.classList.contains('show')) {
+                    var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 2500);
+    </script> -->
+
+</div>
+{% endblock %}

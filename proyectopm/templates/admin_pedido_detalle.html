@@ -1,0 +1,82 @@
+{% extends "base_admin.html" %}
+{% block contenido %}
+<div class="container mt-4" style="max-width: 800px;">
+    <div class="card shadow rounded-4">
+        <div class="card-header bg-danger text-white rounded-top-4">
+            <h4 class="mb-0">Detalle de Pedido N° {{ pedido.id }}</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><b>Cliente:</b> {{ pedido.cliente.nombre }} ({{ pedido.cliente.cedula }})</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><b>Fecha:</b> {{ pedido.fecha|date:"d/m/Y H:i" }}</span>
+                    <span><b>Total:</b> ${{ pedido.total }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                        <b>Estado:</b> 
+                        <span class="badge 
+                            {% if pedido.estado == 'pendiente' %}bg-warning
+                            {% elif pedido.estado == 'enviado' %}bg-info
+                            {% elif pedido.estado == 'entregado' %}bg-success
+                            {% elif pedido.estado == 'cancelado' %}bg-danger
+                            {% else %}bg-secondary{% endif %}
+                            ">
+                            {{ pedido.get_estado_display }}
+                        </span>
+                    </span>
+                </li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">Productos</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle table-hover rounded">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-center">Precio unitario</th>
+                            <th class="text-center">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.nombre }}</td>
+                            <td class="text-center">{{ detalle.cantidad }}</td>
+                            <td class="text-center">${{ detalle.precio_unitario }}</td>
+                            <td class="text-center">${{ detalle.subtotal|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="mb-3">
+                <h5 class="mb-2">Cambiar Estado del Pedido</h5>
+                {% if mensaje %}
+                    <div class="alert alert-success">{{ mensaje }}</div>
+                {% endif %}
+                <form method="post" class="row g-2 align-items-center">
+                    {% csrf_token %}
+                    <div class="col-auto">
+                        <select name="estado" class="form-select">
+                            {% for code, label in ESTADOS %}
+                                <option value="{{ code }}" {% if pedido.estado == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Actualizar estado</button>
+                    </div>
+                </form>
+            </div>
+            <a href="{% url 'admin_pedidos' %}" class="btn btn-secondary btn-sm mt-2">Volver a lista de pedidos</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

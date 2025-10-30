@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div class="container py-5 text-center">
+    <div class="alert alert-success display-5 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill"></i> ¡Compra realizada con éxito!
+    </div>
+    <p class="fs-4">Tu pedido <span class="fw-bold">N° {{ pedido.id }}</span> fue registrado correctamente.</p>
+    <p class="text-secondary mb-5">
+        Pronto recibirás un mensaje de confirmación y tu pedido será procesado.
+    </p>
+    <a href="{% url 'categorias' %}" class="btn btn-primary btn-lg"><i class="bi bi-bag"></i> Volver al catálogo</a>
+</div>
+{% endblock %}
+

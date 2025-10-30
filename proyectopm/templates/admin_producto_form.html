@@ -1,0 +1,44 @@
+{% extends "base_admin.html" %}
+{% load widget_tweaks %}
+{% block contenido %}
+<div class="container mt-5" style="max-width:600px;">
+    <div class="card shadow rounded-4">
+        <div class="card-header bg-danger text-white rounded-top-4">
+            <h4 class="mb-0">{{ titulo }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {# --- Muestra la imagen actual si está en edición y hay imagen --- #}
+                {% if form.instance.pk and form.instance.imagen %}
+                    <div class="mb-4 text-center">
+                        <img src="{{ form.instance.imagen.url }}" alt="Imagen actual"
+                             style="max-width: 180px; max-height: 180px; border-radius: 12px; border: 1px solid #ccc; box-shadow:0 2px 10px #bbb;">
+                        <div class="form-text mt-2">Imagen actual del producto</div>
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-12 mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field|add_class:"form-control" }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-success px-4">Guardar</button>
+                    <a href="{% url 'admin_productos' %}" class="btn btn-secondary ms-2">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

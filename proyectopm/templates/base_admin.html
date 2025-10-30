@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block titulo %}Panel Admin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+</head>
+
+<body style="d-flex flex-column min-vh-100" style="background-color:#f6f6f6;">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#c40000;">
+
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'admin_dashboard' %}">
+                <i class="bi bi-speedometer2"></i> Admin Loayza
+            </a>
+
+            <a href="#" id="notiBtn" class="position-relative" data-bs-toggle="modal" data-bs-target="#stockBajoModal">
+                <i id="notiBell" class="bi bi-bell fs-4 text-white"></i>
+                {% if cant_productos_bajo_stock > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7em;">
+                        {{ cant_productos_bajo_stock }}
+                    </span>
+                {% endif %}
+            </a>
+
+            <span class="navbar-text ms-auto text-white">
+                Sesion Iniciada como <b>{{ user.username }}</b>
+                <a class="btn btn-outline-light btn-sm ms-3" href="{% url 'admin_logout' %}">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </a>
+            </span>
+        </div>
+    </nav>
+
+    <main class="container my-4 flex-grow-1">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer class="text-center py-3 mt-4 text-secondary" style="background-color: #f8f9fa; box-shadow: 0 -2px 8px #ccc2;">
+        Panel administrativo - Almacén Loayza © {{ year|default:"2025" }}
+    </footer>
+
+
+        <!-- Modal Bootstrap -->
+        <div class="modal fade" id="stockBajoModal" tabindex="-1" aria-labelledby="stockBajoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="stockBajoLabel"><i class="bi bi-exclamation-triangle-fill"></i> Productos con bajo stock</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                {% if productos_bajo_stock %}
+                <ul class="list-group">
+                    {% for p in productos_bajo_stock %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ p.nombre }}
+                        <span class="badge bg-danger">{{ p.stock }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted">No hay productos en bajo stock 🎉</div>
+                {% endif %}
+            </div>
+            </div>
+        </div>
+        </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+/* Si quieres que NO se mueva (rote) en absoluto, comenta o elimina la regla @keyframes bell-shake.
+   Si quieres que se mueva MUY sutilmente, puedes ajustar los grados. */
+@keyframes bell-shake {
+    0% { transform: rotate(0deg); }
+    /* Puedes reducir los grados para una sacudida mínima */
+    15% { transform: rotate(-2deg); } /* Muy pequeña rotación */
+    30% { transform: rotate(1deg); }
+    45% { transform: rotate(-1deg); }
+    60% { transform: rotate(0.5deg); }
+    75% { transform: rotate(-0.5deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.bell-shake {
+    /* Mantenemos la animación con duración de 1s para el 'shake' (si lo mantienes) */
+    animation: bell-shake 1s cubic-bezier(.36,.07,.19,.97) both;
+    
+    /* Esta es la parte del resaltado/brillo */
+    filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px #fff) drop-shadow(0 0 20px #fff) drop-shadow(0 0 28px #fff) drop-shadow(0 0 36px #fff);
+    
+    /* Este es el agrandamiento durante la animación */
+    transform: scale(1.2); /* Reducimos la escala a algo más sutil que 1.9 */
+    
+    /* Añadimos una transición para que los cambios de filtro/transform sean suaves al activarse/desactivarse */
+    transition: filter 0.5s ease-out, transform 0.5s ease-out;
+}
+
+/* ESTA ES LA CLASE CLAVE para mantener el resaltado y la escala después de la animación inicial */
+.bell-active-highlight {
+    /* Ejemplo de resaltado muy intenso */
+    filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px #fff) drop-shadow(0 0 20px #fff) drop-shadow(0 0 28px #fff) drop-shadow(0 0 26px #fff);
+    transform: scale(1.2); /* Mantiene el tamaño */
+    transition: filter 0.5s ease-in, transform 0.5s ease-in; /* Transición suave al desactivarse */
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var hayNoti = {{ cant_productos_bajo_stock|default:0 }};
+    var bell = document.getElementById('notiBell');
+
+    if (bell && hayNoti > 0) {
+        function activateBellHighlight() {
+            // Remover la clase de animación por si estaba activa, para reiniciar.
+            bell.classList.remove('bell-shake'); 
+            void bell.offsetWidth; // Truco para forzar el reflow y reiniciar la animación CSS si se mantuviera.
+
+            // Aplicar la animación de 'shake' (si se desea) y la clase de resaltado
+            bell.classList.add('bell-shake'); // Esto durará 1s
+            bell.classList.add('bell-active-highlight'); // Esto aplicará el brillo/escala y lo mantendrá
+
+            // Desactivar el resaltado después de 3 segundos
+            setTimeout(function() {
+                bell.classList.remove('bell-active-highlight');
+                // Opcional: remover bell-shake si quieres que el "shake" sea solo de 1s
+                // bell.classList.remove('bell-shake'); 
+            }, 1500); // Duración del resaltado: 3 segundos
+        }
+
+        // 1. Activar el resaltado inmediatamente al cargar la página
+        activateBellHighlight();
+
+        // 2. Repetir la activación del resaltado cada 4 segundos
+        // El ciclo completo es: 3s encendido + 1s apagado = 4s
+        setInterval(activateBellHighlight, 3000); 
+    }
+});
+</script>
+
+
+
+</body>
+</html>

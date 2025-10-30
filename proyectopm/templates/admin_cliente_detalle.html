@@ -1,0 +1,40 @@
+{% extends "base_admin.html" %}
+{% block contenido %}
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card shadow rounded-4">
+        <div class="card-header bg-danger text-white rounded-top-4">
+            <h3 class="mb-0"><i class="bi bi-person"></i> Detalle de cliente</h3>
+        </div>
+        <div class="card-body">
+            <ul class="list-group mb-4">
+                <li class="list-group-item"><b>Nombre:</b> {{ cliente.nombre }}</li>
+                <li class="list-group-item"><b>Cédula:</b> {{ cliente.cedula }}</li>
+                <li class="list-group-item"><b>Dirección:</b> {{ cliente.direccion }}</li>
+                <li class="list-group-item"><b>Teléfono:</b> {{ cliente.telefono }}</li>
+                <li class="list-group-item"><b>Email:</b> {{ cliente.email }}</li>
+            </ul>
+            <h5 class="mb-3"><i class="bi bi-bag"></i> Pedidos realizados:</h5>
+            {% if pedidos %}
+                <div class="list-group">
+                {% for pedido in pedidos %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">#{{ pedido.id }}</span>
+                            {{ pedido.fecha|date:"d/m/Y H:i" }}<br>
+                            <span class="text-success fw-bold">Total: ${{ pedido.total }}</span>
+                            <span class="ms-2 badge bg-info text-dark">{{ pedido.get_estado_display }}</span>
+                        </div>
+                        <a href="{% url 'admin_pedido_detalle' pedido.id %}" class="btn btn-outline-primary btn-sm">Ver</a>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">No ha realizado pedidos aún.</div>
+            {% endif %}
+        </div>
+        <div class="card-footer bg-white text-end">
+            <a href="{% url 'admin_clientes' %}" class="btn btn-secondary btn-sm">Volver</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

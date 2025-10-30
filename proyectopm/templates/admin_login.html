@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="container" style="max-width: 400px; margin-top:80px;">
+    <h2 class="mb-4 text-center" style="color:#c40000;">Ingreso Administrativo</h2>
+    {% if login_error %}
+        <div class="alert alert-danger">{{ login_error }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Usuario</label>
+            <input type="text" name="username" class="form-control" required autofocus>
+        </div>
+        <div class="mb-3">
+            <label>Contraseña</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        <button class="btn btn-danger w-100" type="submit">Ingresar</button>
+    </form>
+</div>
+{% endblock %}

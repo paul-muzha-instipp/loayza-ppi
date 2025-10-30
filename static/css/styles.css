@@ -1,0 +1,156 @@
+/*Estilos generales del boton whatsapp*/
+.whatsapp-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #25D366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  animation: breathe 2s ease-in-out infinite;
+}
+/*Estilos solo al icono whatsapp*/
+.whatsapp-btn i {
+  color: #fff;
+  font-size: 24px;
+  animation: beat 2s ease-in-out infinite;
+  text-decoration: none;
+}
+
+/*estilos de instagram*/
+.btn-instagram {
+  position: fixed;
+  bottom: 95px; /* Ajusta si tienes otro botón, como el de WhatsApp */
+  right: 20px;
+  background: radial-gradient(circle at 30% 107%, 
+    #fdf497 0%, #fdf497 5%, #fd5949 45%, 
+    #d6249f 60%, #285AEB 90%);
+  color: #fff;
+  border-radius: 55%;
+  padding: 10px 16px;
+  font-size: 20px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  animation: breathe-insta 2s ease-in-out infinite;
+  z-index: 995;
+  transition: all 0.3s ease-in-out;
+}
+.btn-instagram i {
+  color: #fff;
+  font-size: 28px;
+  animation: beat-insta 2s ease-in-out infinite; /* ❤️ efecto latiendo */
+  text-decoration: none;
+}
+.btn-instagram:hover {
+  transform: scale(1.15) rotate(10deg);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.1);
+}
+@keyframes breathe-insta {
+  0% {
+    box-shadow: 0 0 0 0 rgba(214, 36, 159, 0.5); /* tono rosado */
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(214, 36, 159, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/* 🔹 Efecto del ícono latiendo para instagram*/
+@keyframes beat-insta {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/*Estilos con animation contorno respirando de whatsapp*/
+@keyframes breathe {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/*Estilos de animacion del icono latiendo*/
+@keyframes beat {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Botón flotante de TikTok */
+.tiktok-btn {
+  position: fixed;
+  bottom: 160px; /* Ajusta según otros botones */
+  right: 20px;
+  z-index: 9999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* círculo perfecto */
+  background-color: #69C9D0; /* color base TikTok */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  animation: breathe-tiktok 2s ease-in-out infinite;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Estilo del ícono dentro del botón */
+.tiktok-btn i {
+  color: #fff;
+  font-size: 24px;
+  animation: beat-tiktok 2s ease-in-out infinite;
+  text-decoration: none;
+}
+
+/* Hover opcional */
+.tiktok-btn:hover {
+  transform: scale(1.15) rotate(10deg);
+  box-shadow: 3px 3px 12px rgba(0,0,0,0.4);
+  filter: brightness(1.1);
+}
+
+/* Animación respirando (borde expandiéndose) */
+@keyframes breathe-tiktok {
+  0% {
+    box-shadow: 0 0 0 0 rgba(105,201,208,0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(105,201,208,0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  }
+}
+
+/* Animación del ícono latiendo */
+@keyframes beat-tiktok {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
