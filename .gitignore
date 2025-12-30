@@ -1,0 +1,20 @@
+# Entorno virtual
+env_terceromuzha/
+venv/
+env/
+
+# Base de datos local (Render usará PostgreSQL)
+db.sqlite3
+
+# Archivos de compilación de Python
+__pycache__/
+*.py[cod]
+
+# Archivos estáticos generados
+staticfiles/
+
+# Configuración de VS Code
+.vscode/
+
+# Archivos de medios (imágenes subidas por usuarios)
+media/

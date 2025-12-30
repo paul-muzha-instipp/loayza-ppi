@@ -1,0 +1,100 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ producto.nombre }} - Detalle{% endblock %}
+
+{% block contenido %}
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0">
+            <img class="card-img-top img-fluid" src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="max-height: 450px; object-fit: contain;">
+            </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="display-5 fw-bolder">{{ producto.nombre }}</h1>
+            
+            <a href="{% url 'inicio' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Volver a la Lista
+            </a>
+        </div>
+
+        <hr>
+        
+        <div class="fs-3 mb-4">
+            <span class="text-muted text-decoration-line-through me-2">
+                {% if producto.precio_anterior %}$ {{ producto.precio_anterior|floatformat:2|intcomma }}{% endif %}
+            </span>
+            <strong>$ {{ producto.precio|floatformat:2|intcomma }}</strong>
+        </div>
+
+        <div class="mb-4">
+            <p class="mb-1">
+                <i class="bi bi-tag-fill me-2 text-danger"></i>
+                <span class="fw-bold">Categoría:</span> 
+                <a href="{% url 'productos_categoria' producto.categoria.id %}" class="link-dark">{{ producto.categoria.nombre }}</a>
+            </p>
+            <p class="mb-1">
+                <i class="bi bi-box-seam-fill me-2"></i>
+                <span class="fw-bold">Disponibilidad:</span> 
+                {% if producto.stock > 0 %}
+                    <span class="text-success">En Stock ({{ producto.stock }} unidades)</span>
+                {% else %}
+                    <span class="text-danger">Agotado</span>
+                {% endif %}
+            </p>
+            </div>
+
+        <p class="lead">{{ producto.descripcion|safe }}</p>
+
+        <div class="d-grid gap-2">
+            {% if producto.stock > 0 %}
+                <form action="{% url 'agregar_carrito' producto.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="input-group mb-3" style="max-width: 200px;">
+                        <span class="input-group-text">Cantidad</span>
+                        <input type="number" name="cantidad" value="1" min="1" max="{{ producto.stock }}" class="form-control text-center">
+                    </div>
+                    <button class="btn btn-danger btn-lg flex-shrink-0" type="submit">
+                        <i class="bi-cart-fill me-1"></i>
+                        Añadir al Carrito
+                    </button>
+                </form>
+            {% else %}
+                <button class="btn btn-secondary btn-lg flex-shrink-0" type="button" disabled>
+                    <i class="bi-x-circle me-1"></i> Producto Agotado
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+{% if productos_relacionados %}
+<h2 class="fw-bolder mb-4">Productos Relacionados</h2>
+<div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+    {% for related_producto in productos_relacionados %}
+    <div class="col mb-5">
+        <div class="card h-100 shadow-sm">
+            <img class="card-img-top" src="{{ related_producto.imagen.url }}" alt="{{ related_producto.nombre }}" style="height: 150px; object-fit: cover;">
+            <div class="card-body p-4">
+                <div class="text-center">
+                    <h5 class="fw-bolder">{{ related_producto.nombre }}</h5>
+                    $ {{ related_producto.precio|floatformat:2|intcomma }}
+                </div>
+            </div>
+            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                <div class="text-center">
+                    <a class="btn btn-outline-dark mt-auto" href="{% url 'producto_detalle' related_producto.id %}">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock contenido %}

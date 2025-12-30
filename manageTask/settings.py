@@ -1,3 +1,4 @@
+import dj_database_url
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -10,9 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%r_php)6^)%weo5k6!)udzn*&xtre$u^(c%glo!3=arsve@vr4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '*' ]
 
 
 # Application definition
@@ -25,11 +26,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'django.contrib.humanize',
     'proyectopm'
 ]
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -47,12 +55,15 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # Agrega la línea abajo (ajusta 'proyectopm' si tu app se llama distinto)
                 'proyectopm.context_processors.menu_context',
+                'proyectopm.context_processors.redes_sociales',
                 'proyectopm.context_processors.notificaciones_stock',  # <-- Añade esta línea
+
             ],
         },
     },
@@ -72,16 +83,14 @@ WSGI_APPLICATION = 'manageTask.wsgi.application'
 #     }
 # }
 
-#BASE DE DATOS POSTGRES
+
+# BASE DE DATOS PARA RENDER Y LOCAL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bd_comercial',
-        'USER': 'postgres',
-        'PASSWORD': 'paul1170',
-        'HOST': 'localhost',
-        'PORT': '4356',
-    }
+    'default': dj_database_url.config(
+        # Esto permite que use PostgreSQL en Render y tu configuración local si no hay URL externa
+        default='postgresql://postgres:paul1170@localhost:4356/bd_comercial',
+        conn_max_age=600
+    )
 }
 
 # Password validation
@@ -121,19 +130,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'staticfiles' 
 STATICFILES_DIRS = [
-    STATIC_DIR    
+    BASE_DIR / 'static'
 ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
+AUTH_USER_MODEL = 'proyectopm.User'
 
 
 

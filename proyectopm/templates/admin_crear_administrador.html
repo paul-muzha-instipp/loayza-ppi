@@ -1,0 +1,173 @@
+{% extends 'base_admin.html' %} {% block titulo %}Registrar Administrativo | Panel Admin{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #343a40;">
+                <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>{{ titulo }}</h5>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Volver al Panel
+                </a>
+            </div>
+            <div class="card-body bg-white p-4">
+                <form method="post" enctype="multipart/form-data" class="needs-validation">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Nombres</label>
+                            {{ form.first_name }}
+                            <div class="text-danger small">{{ form.first_name.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Apellidos</label>
+                            {{ form.last_name }}
+                            <div class="text-danger small">{{ form.last_name.errors }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Username</label>
+                            {{ form.username }}
+                            <div class="text-danger small">{{ form.username.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Contraseña</label>
+                            {{ form.password }}
+                            <div class="text-danger small">{{ form.password.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Identicacion</label>
+                            {{ form.dni }}
+                            <div class="text-danger small">{{ form.dni.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Correo Electrónico</label>
+                            {{ form.email }}
+                            <div class="text-danger small">{{ form.email.errors }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Foto de Perfil</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                {{ form.image }}
+                            </div>
+                            <div class="text-danger small">{{ form.image.errors }}</div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="form-check form-switch p-3 ps-5 border rounded bg-light">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">
+                                    Habilitar acceso al sistema
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-save"></i> Guardar Usuario
+                        </button>
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-light px-4 border">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{# FORMULARIO DE USUARIOS ADMINISTRATIVOS #}
+<div class="col-md-10 mt-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i> Administrativos Registrados</h5>
+        </div>
+        <div class="card-body bg-white p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Usuario</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">{{ u.username }}</td>
+                            <td>{{ u.first_name }} {{ u.last_name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td class="text-center">
+                                {% if u.is_active %}
+                                    <span class="badge rounded-pill bg-success-subtle text-success px-3">Activo</span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-danger-subtle text-danger px-3">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'toggle_usuario_status' u.id %}" 
+                                   class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                    {% if u.is_active %}
+                                        <i class="bi bi-person-x-fill"></i> Desactivar
+                                    {% else %}
+                                        <i class="bi bi-person-check-fill"></i> Activar
+                                    {% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No hay otros administrativos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    /* Aplicar estilos de Bootstrap a los widgets de Django */
+    input[type="text"], input[type="password"], input[type="email"], select, input[type="file"] {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+    input[type="checkbox"] {
+        width: 1.5em;
+        height: 1.5em;
+        margin-top: 0.25em;
+        cursor: pointer;
+    }
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.375rem !important;
+        min-height: 38px !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "Asigne uno o más grupos...",
+            allowClear: true,
+            language: "es"
+        });
+    });
+</script>
+{% endblock %}

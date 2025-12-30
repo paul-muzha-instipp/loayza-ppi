@@ -1,0 +1,50 @@
+{% extends "base.html" %} 
+{% load static %}
+{% block title %}Resultados para "{{ query }}"{% endblock %}
+{% block contenido %}
+<div class="container my-5">
+    <h2 class="mb-3">Resultados para:"<span class="text-danger">{{ query }}</span>"</h2>
+    <p class="text-muted border-bottom pb-2">Se encontraron <strong>{{ productos|length }}</strong> productos.</p>
+    {% if productos %}
+        <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            {% for producto in productos %}
+                <div class="col mb-5">
+                    <div class="card h-100">
+                        
+                        {% if producto.imagen %}
+                            <img class="card-img-top" src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="height: 150px; object-fit: cover;" />
+                        {% else %}
+                            <img class="card-img-top" src="{% static 'assets/placeholder.png' %}" alt="Sin imagen" style="height: 150px; object-fit: cover;" />
+                        {% endif %}
+                        
+                        <div class="card-body p-4">
+                            <div class="text-center">
+                                <h5 class="fw-bolder">{{ producto.nombre }}</h5>
+                                
+                                ${{ producto.precio|floatformat:2 }}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                            <div class="text-center">
+                                {# Asumiendo que tienes una URL para ver el detalle de un producto #}
+                                <a class="btn btn-outline-dark mt-auto" href="{% url 'detalle_producto' producto.id %}">Ver Producto</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+        </div>
+        
+    {% else %}
+        <div class="alert alert-warning mt-5" role="alert">
+            <h4 class="alert-heading">¡Lo sentimos!</h4>
+            <p>No se encontraron productos que coincidan con su búsqueda: **"{{ query }}"**.</p>
+            <hr>
+            <p class="mb-0">Pruebe con términos más generales o revise nuestras <a href="{% url 'categorias' %}" class="alert-link">categorías</a>.</p>
+        </div>
+    {% endif %}
+
+</div> 
+{% endblock contenido %}

@@ -1,0 +1,492 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block contenido %}
+<h1 class="mb-4 text-center">
+    <i class="bi bi-gear-fill"></i> Administración de Elementos de Inicio
+</h1>
+{# ---- ADMINISTRACION DE INFORMACION DE LA EMPRESA ----------- #}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-building"></i> Información de la Empresa</h5>
+        <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#modalEditarEmpresa">
+            <i class="bi bi-pencil"></i> Editar Información
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center">
+                {% if empresa.logo %}
+                    <img src="{{ empresa.logo.url }}" alt="Logo" class="img-fluid rounded" style="max-height: 80px;">
+                {% else %}
+                    <div class="bg-light p-3 border">Sin Logo</div>
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                <div class="row">
+                    <div class="col-md-4"><strong>Teléfono:</strong> {{ empresa.telefono }}</div>
+                    <div class="col-md-4"><strong>Correo:</strong> {{ empresa.correo }}</div>
+                    <div class="col-md-4"><strong>Ubicación:</strong> {{ empresa.direccion }}</div>
+                    <div class="col-md-3 text-truncate">
+                    <strong>Mapa:</strong> 
+                    {% if empresa.mapa_iframe %}
+                    <span class="badge bg-success">Configurado</span>
+                    {% else %}
+                    <span class="badge bg-danger">No configurado</span>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalEditarEmpresa" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{% url 'admin_empresa_guardar' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {% if empresa %}
+                            Editar Información Corporativa
+                        {% else %}
+                            Agregar Información Corporativa
+                        {% endif %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono de Contacto</label>
+                        <input type="text" name="telefono" class="form-control" 
+                               value="{{ empresa.telefono|default_if_none:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input type="email" name="correo" class="form-control" 
+                               value="{{ empresa.correo|default_if_none:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección Física</label>
+                        <input type="text" name="direccion" class="form-control" 
+                               value="{{ empresa.direccion|default_if_none:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                    <label class="form-label">Código Iframe de Google Maps</label>
+                    <textarea name="mapa_iframe" class="form-control" rows="4" placeholder='Pegue aquí el código que empieza con <iframe...'>
+                    {{ empresa.mapa_iframe|default_if_none:'' }}</textarea> <small class="text-muted">
+        Para obtenerlo: Busque su local en Google Maps > Compartir > Insertar un mapa > Copiar HTML.
+    </small>
+</div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            {% if empresa %} Cambiar Logo {% else %} Subir Logo {% endif %}
+                        </label>
+                        <input type="file" name="logo" class="form-control" accept="image/*" 
+                               {% if not empresa %} required {% endif %}>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        {% if empresa %} Guardar Cambios {% else %} Registrar Empresa {% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{# ---- GESTIÓN DE REDES SOCIALES ----------- #}
+<div class="card mb-4 shadow-sm border-info">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-2">
+        <h5 class="mb-0" style="font-size: 1.1rem;">
+            <i class="bi bi-share-fill"></i> Gestión de Redes Sociales
+            <button type="button" class="btn btn-light btn-sm ms-3" data-bs-toggle="modal" data-bs-target="#modalAgregarRed">
+                <i class="bi bi-plus-circle"></i> Agregar Red
+            </button>
+        </h5>
+        <form method="post" action="{% url 'toggle_redes_global' %}" class="d-flex align-items-center"> 
+            {% csrf_token %}
+            <span class="me-2">Estado actual: {% if config_sitio.redes_activas %}VISIBLE{% else %}OCULTO{% endif %}</span>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" 
+                       {% if config_sitio.redes_activas %}checked{% endif %}
+                       onchange="this.form.submit()">
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Red</th>
+                        <th>Enlace Actual</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for red in redes %}
+                    <tr>
+                        <td>
+                            {% if red.tipo == 'f' %}<i class="bi bi-facebook text-primary"></i>
+                            {% elif red.tipo == 'i' %}<i class="bi bi-instagram text-danger"></i>
+                            {% elif red.tipo == 't' %}<i class="bi bi-tiktok"></i>
+                            {% elif red.tipo == 'w' %}<i class="bi bi-whatsapp text-success"></i>
+                            {% elif red.tipo == 'y' %}<i class="bi bi-youtube text-danger"></i>
+                            {% endif %}
+                            <strong>{{ red.nombre }}</strong>
+                        </td>
+                        <td><small class="text-muted">{{ red.url|truncatechars:40 }}</small></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editred{{ red.id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            
+                            <form method="post" action="{% url 'admin_red_eliminar' red.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar esta red?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <div class="modal fade" id="editred{{ red.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white"> 
+                                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar: {{ red.nombre }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="post" action="{% url 'admin_red_editar' red.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-body text-start">
+    <div class="mb-3">
+        <label class="form-label">Nombre de la Red</label>
+        <input type="text" name="nombre" class="form-control" value="{{ red.nombre }}" required>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">Tipo de Icono</label>
+        <select name="tipo" class="form-select" required>
+            <option value="f" {% if red.tipo == 'f' %}selected{% endif %}>Facebook</option>
+            <option value="i" {% if red.tipo == 'i' %}selected{% endif %}>Instagram</option>
+            <option value="t" {% if red.tipo == 't' %}selected{% endif %}>TikTok</option>
+            <option value="w" {% if red.tipo == 'w' %}selected{% endif %}>WhatsApp</option>
+            <option value="y" {% if red.tipo == 'y' %}selected{% endif %}>YouTube</option>
+        </select>
+    </div>
+    <div class="mb-3">
+    <label class="form-label">Dato de contacto (URL o Número)</label>
+    <input type="text" name="url" class="form-control" placeholder="Ej: 593968264823 o https://facebook.com/..." required>
+    <small class="text-muted">Si es WhatsApp, ingresa solo el número con código de país.</small>
+</div>
+</div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">No hay redes configuradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAgregarRed" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Agregar Nueva Red</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'admin_red_agregar' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-select">
+                            <option value="f">Facebook</option>
+                            <option value="i">Instagram</option>
+                            <option value="t">TikTok</option>
+                            <option value="w">WhatsApp</option>
+                            <option value="y">YouTube</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                    <label class="form-label">Dato de contacto (URL o Número)</label>
+                    <input type="text" name="url" class="form-control" placeholder="Ej: 593968264823 o https://facebook.com/..." required>
+                    <small class="text-muted">Si es WhatsApp, ingresa solo el número con código de país.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+{# SECCIÓN: CARRUSEL PRINCIPAL #}
+<h2 class="mb-3"><i class="bi bi-image-fill"></i> Carrusel Principal</h2>
+<div class="row mb-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">{{ titulo_form }}</div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% if slide_a_editar %}{% url 'admin_carrusel_gestion' slide_id=slide_a_editar.id %}{% else %}{% url 'admin_carrusel_gestion' %}{% endif %}">
+                    {% csrf_token %}
+                    {{ form|crispy }} 
+                    <button type="submit" name="btn_guardar_slide" class="btn btn-success w-100 mt-3">Guardar Slide</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <table class="table align-middle">
+            <thead><tr><th>Orden</th><th>Preview</th><th>Título</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for slide in slides %}
+                <tr>
+                    <td>{{ slide.orden }}</td>
+                    <td>{% if slide.imagen %}<img src="{{ slide.imagen.url }}" width="60">{% endif %}</td>
+                    <td>{{ slide.nombre }}</td>
+                    <td>
+                        <a href="{% url 'admin_carrusel_gestion' slide.id %}" class="btn btn-sm btn-info"><i class="bi bi-pencil"></i></a>
+                        <form action="{% url 'admin_carrusel_eliminar' slide.id %}" method="POST" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                onclick="return confirm('¿Estás seguro de eliminar el slide: {{ slide.nombre }}?')">
+            <i class="bi bi-trash"></i>
+        </button>
+    </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<hr class="my-5">
+
+{# SECCIÓN: MARCAS TOP #}
+{# SECCIÓN: MARCAS TOP #}
+<h2 class="mb-3"><i class="bi bi-shop"></i> Carrusel de Marcas TOP</h2>
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white">
+                {{ titulo_marcas_form }}
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% if request.GET.edit_marca %}?edit_marca={{ request.GET.edit_marca }}{% endif %}">
+                    {% csrf_token %}
+                    {{ marcas_form|crispy }} 
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" name="btn_guardar_marca" class="btn btn-success">
+                            <i class="bi bi-save"></i> Guardar Marca
+                        </button>
+                        {% if request.GET.edit_marca %}
+                            <a href="{% url 'admin_carrusel_gestion' %}" class="btn btn-outline-secondary btn-sm">Cancelar Edición</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Preview</th>
+                        <th>Nombre</th>
+                        <th>Inicio</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for marca in marcas_slides %}
+                    <tr>
+                        <td>
+                            {% if marca.imagen %}
+                                <img src="{{ marca.imagen.url }}" class="img-thumbnail" style="width: 60px; height: 40px; object-fit: contain;">
+                            {% else %}
+                                <span class="text-muted small">Sin logo</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ marca.nombre }}</strong></td>
+                        <td>
+                            {% if marca.pagina_inicio %}
+                                <span class="badge bg-success">Visible</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Oculta</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="?edit_marca={{ marca.id }}" class="btn btn-sm btn-outline-info" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{% url 'admin_marcas_eliminar' marca.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            onclick="return confirm('¿Estás seguro de eliminar la marca: {{ marca.nombre }}?')" 
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No hay marcas registradas para mostrar en el carrusel.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# SECCIÓN: GESTIÓN DE NOTICIAS Y BLOG #}
+<div class="card shadow mb-4 mt-5" id="seccion-noticias">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-dark text-white">
+        <h6 class="m-0 font-weight-bold">
+            <i class="bi bi-newspaper me-2"></i>Gestión de Noticias y Blog
+        </h6>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNoticia">
+            <i class="bi bi-plus-circle"></i> Nueva Noticia
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Fecha de Publicación</th>
+                        <th>Visibilidad</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for noticia in noticias %}
+                    <tr>
+                        <td><strong>{{ noticia.titulo }}</strong></td>
+                        <td>{{ noticia.fecha_publicacion|date:"d M, Y" }}</td>
+                        <td>
+                            {% if noticia.pagina_inicio %}
+                                <span class="badge bg-success shadow-sm">En Inicio</span>
+                            {% else %}
+                                <span class="badge bg-secondary shadow-sm">Solo Blog</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="?edit_noticia={{ noticia.id }}#seccion-noticias" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                
+                                <form action="{% url 'admin_noticia_eliminar' noticia.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            onclick="return confirm('¿Estás seguro de eliminar la noticia: {{ noticia.titulo }}?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No hay noticias registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# --- MODAL ÚNICO DE NOTICIAS (Para Crear y Editar) --- #}
+<div class="modal fade" id="modalNoticia" tabindex="-1" aria-labelledby="modalNoticiaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalNoticiaLabel">
+                    <i class="bi bi-newspaper me-2"></i>
+                    {% if noticia_editando %}Editar Noticia{% else %}Nueva Noticia{% endif %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="noticia_id_hidden" value="{{ noticia_editando.id|default:'' }}">
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{ noticia_form|crispy }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" name="btn_guardar_noticia" class="btn btn-success px-4">
+                        <i class="bi bi-save me-2"></i>Guardar Noticia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# --- SCRIPT PARA AUTO-ABRIR EL MODAL AL EDITAR --- #}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Función para actualizar los campos según el tipo seleccionado
+    function actualizarCamposRed(selectElement) {
+        // Buscamos el modal padre para encontrar los elementos correctos (sea agregar o editar)
+        const modal = selectElement.closest('.modal-content');
+        const input = modal.querySelector('input[name="url"]');
+        const label = modal.querySelector('.form-label:last-of-type');
+        const ayuda = modal.querySelector('.text-muted');
+
+        if (selectElement.value === 'w') { // 'w' es el valor de WhatsApp en tu select
+            label.innerText = "Número de WhatsApp";
+            input.placeholder = "Ej: 593968264823";
+            if(ayuda) ayuda.innerText = "Ingrese el número con código de país, sin espacios ni símbolos.";
+        } else {
+            label.innerText = "URL del enlace";
+            input.placeholder = "https://...";
+            if(ayuda) ayuda.innerText = "Ingrese el enlace completo del perfil.";
+        }
+    }
+
+    // Escuchar cambios en todos los select de tipo (Agregar y Editar)
+    document.querySelectorAll('select[name="tipo"]').forEach(select => {
+        select.addEventListener('change', function() {
+            actualizarCamposRed(this);
+        });
+    });
+});
+</script>
+{% endblock contenido %}

@@ -1,128 +1,318 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Tienda Online{% endblock %}</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-    <!-- Tu CSS personalizado -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'css/assets/favicon.ico' %}" />
-</head>
-<body>
-    <!-- Navbar superior -->
-    <nav class="navbar navbar-expand-lg" style="background-color: #c40000;">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'inicio' %}">
-                <img src="{% static 'img/loayzaexpvec.png' %}" alt="Logo" width="250" height="80" class="d-inline-block align-top">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}" href="{% url 'inicio' %}">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'about' %}">About</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Categorías
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% for categoria in categorias_menu %}
-                            <li>
-                                <a class="dropdown-item" href="{% url 'productos_categoria' categoria.id %}">
-                                    {{ categoria.nombre }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                </ul>
-                <!-- Carrito -->
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="btn btn-outline-light position-relative" href="{% url 'carrito' %}">
-                            <i class="bi bi-cart-fill"></i>
-                            Carrito
-                            {% if carrito_total %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    {{ carrito_total }}
-                                </span>
-                            {% endif %}
-                        </a>
-                    </li>
-                </ul>
+    <title>{% block title %}JMLoayza{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <link rel="icon" type="image/png" href="{% static 'assets/logultimo.png' %}" />
+  </head>
+  <body>
+    <nav
+      class="navbar navbar-expand-lg navbar-dark"
+      style="background-color: #c40000; min-height: 100px"
+    >
+      <div class="container-fluid px-4">
+        <a class="navbar-brand me-4" href="{% url 'inicio' %}">
+          <img
+            src="{% static 'img/loayzaexpvec.png' %}"
+            alt="Logo Loayza Express"
+            class="navbar-logo-custom"
+          />
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav align-items-center">
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}"
+                href="{% url 'inicio' %}"
+              >
+                <i class="bi bi-house-door"></i> Inicio
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'about' %}">
+                <i class="bi bi-card-text"></i> Acerca De
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-grid"></i> Categorías
+              </a>
+              <ul class="dropdown-menu">
+                {% for categoria in categorias_menu %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'productos_categoria' categoria.id %}"
+                    >{{ categoria.nombre }}</a
+                  >
+                </li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+          <form
+            class="d-flex mx-auto search-form-custom position-relative"
+            action="{% url 'buscar_productos' %}"
+            method="GET"
+            role="search"
+          >
+            <div class="input-group">
+              <input
+                class="form-control"
+                type="search"
+                placeholder="Busca productos..."
+                name="q"
+                id="input-buscador-global"
+                autocomplete="off"
+              />
+              <button class="btn btn-outline-light" type="submit">
+                <i class="bi bi-search"></i>
+              </button>
             </div>
+            <ul
+              id="sugerencias-lista"
+              class="list-group position-absolute w-100 shadow d-none"
+              style="z-index: 1050; top: 100%; border-radius: 0 0 10px 10px"
+            ></ul>
+          </form>
+
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a
+                class="btn btn-outline-light position-relative"
+                href="{% url 'carrito' %}"
+              >
+                <i class="bi bi-cart-fill"></i> Carrito {% if carrito_total %}
+                <span
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                >
+                  {{ carrito_total }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
-
-    <!-- Banner (opcional, solo en algunas páginas) -->
-    {% block banner %}
-    <!-- Ejemplo: aquí puedes poner un carrusel o imagen destacada -->
-    {% endblock %}
-
-    <!-- Contenido principal -->
-    <main class="container my-4">
-        {% block contenido %}
-        {% endblock %}
+    {% block banner %} {% endblock %}
+    <main class="container my-1">
+      {% block contenido %} {% endblock contenido %}
     </main>
-
-    <!-- Footer -->
-    <!-- <footer class="py-4 bg-dark text-light">
-        <div class="container text-center">
-            <p>CONTACTOS | Almacén Loayza &copy; {{ year }}</p>
-            <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.3565933091113!2d-79.95997322601022!3d-3.2613244409724764!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x90330f9791c17dab%3A0xd8a620adb438ec0a!2sAlmacenes%20Loayza%20Rocafuerte!5e0!3m2!1ses!2sec!4v1749776005560!5m2!1ses!2sec"
-                width="400" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-        </div>
-    </footer> -->
-
-    <footer class="py-5" style="background-color: #c40000;">
-        <div class="container text-center">
-            <p class="mb-3" style="color:#fff; font-weight:bold; font-size: 1.1rem;">
-                CONTACTOS
-            </p>
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.3565933091113!2d-79.95997322601022!3d-3.2613244409724764!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x90330f9791c17dab%3A0xd8a620adb438ec0a!2sAlmacenes%20Loayza%20Rocafuerte!5e0!3m2!1ses!2sec!4v1749776005560!5m2!1ses!2sec"
-                        width="100%" height="320" style="border:0;" allowfullscreen="" loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
+    <footer class="py-5" style="background-color: #c40000">
+      <div class="container">
+        <p
+          class="mb-3 text-center"
+          style="color: #fff; font-weight: bold; font-size: 1.5rem"
+        >
+          CONTACTOS
+        </p>
+        <div class="row align-items-center">
+          <div class="col-lg-6 col-md-12 mb-4 mapa-responsivo">
+            <div class="contenedor-mapa shadow">
+              {% if config_global.mapa_iframe %} {{ config_global.mapa_iframe|safe }} {% endif %}
             </div>
-            <!-- <p class="mt-4 text-white-50" style="font-size: 0.95rem;">© {{ year|default:"2025" }} Almacén Loayza. Todos los derechos reservados.</p> -->
+          </div>
+          <div class="col-lg-6 col-md-12 text-center text-lg-start"
+            style="color: white" >
+            <h5 class="mb-2" style="color: #fff; font-weight: bold">
+              Nuestra Ubicación
+            </h5>
+            <p class="mb-1">
+              <i class="bi bi-geo-alt me-2"></i>
+              {% if config_global.direccion %} {{ config_global.direccion }} 
+              {% else %}
+              <span style="opacity: 0.8; font-style: italic">Ubicación no registrada</span>
+              {% endif %}
+            </p>
+            <p class="mb-1">
+              <i class="bi bi-phone me-2"></i>
+              {% if config_global.telefono %} {{ config_global.telefono }} 
+              {% else %}
+              <span style="opacity: 0.8; font-style: italic">Teléfono no registrado</span>
+              {% endif %}
+            </p>
+            <p class="mb-3">
+              {% if config_global.correo %}
+              <a href="mailto:{{ config_global.correo }}"
+                class="text-white text-decoration-none">
+                <i class="bi bi-envelope me-2"></i> {{ config_global.correo }}
+              </a>
+              {% else %}
+              <i class="bi bi-envelope me-2"></i>
+              <span style="opacity: 0.8; font-style: italic"
+                >Correo no registrado</span>
+              {% endif %}
+            </p>
+            <hr class="border-white mt-3 mb-4 mx-auto mx-lg-0"
+              style="max-width: 50%" />
+            <div class="mb-4">
+              <p class="text-white mb-2" style="font-weight: bold; font-size: 1.2rem">
+                Aceptamos todas las tarjetas de crédito
+              </p>
+              <div class="d-flex justify-content-center justify-content-lg-start align-items-center">
+                <img src="{% static 'img/visavector.png' %}" alt="Visa" class="mx-1" style="height: 30px"/>
+                <img
+                  src="{% static 'img/amexprevect.png' %}"
+                  alt="American Express"
+                  class="mx-1"
+                  style="height: 30px"
+                />
+                <img
+                  src="{% static 'img/dinerclubvect.png' %}"
+                  alt="Diners Club"
+                  class="mx-1"
+                  style="height: 40px"
+                />
+                <img
+                  src="{% static 'img/bancopichvect.png' %}"
+                  alt="Banco Pichincha"
+                  class="mx-1"
+                  style="height: 25px"
+                />
+                <img
+                  src="{% static 'img/mastercarvect.png' %}"
+                  alt="Master Card"
+                  class="mx-1"
+                  style="height: 35px"
+                />
+                <img
+                  src="{% static 'img/jepvector.png' %}"
+                  alt="Jep"
+                  class="mx-1"
+                  style="height: 35px"
+                />
+              </div>
+            </div>
+            <h5 class="text-white-50 mb-2">SIGUENOS</h5>
+            <div
+              class="d-flex justify-content-center justify-content-lg-start mb-3"
+            >
+              {% if redes_activas %} {% for red in redes_activas %}
+              <a
+                href="{{ red.url }}"
+                target="_blank"
+                class="text-white me-3 fs-3">
+                {% if red.tipo == 'f' %}<i class="bi bi-facebook"></i>
+                {% endif %} {% if red.tipo == 'i' %}<i class="bi bi-instagram"></i>{% endif %} 
+                {% if red.tipo == 't' %}<i class="bi bi-tiktok"></i>
+                {% endif %} {% if red.tipo == 'w' %}<i class="bi bi-whatsapp"></i>{% endif %} {% if red.tipo == 'y' %}<i
+                  class="bi bi-youtube"></i>{% endif %}
+              </a>
+              {% endfor %} 
+              {% endif %}
+            </div>
+            {% if config_global.logo %}
+            <img src="{{ config_global.logo.url }}" alt="Logo"
+              class="footer-corner-image"
+              style="height: 40px"/>
+            {% endif %}
+          </div>
         </div>
+      </div>
     </footer>
     <footer class="py-4 bg-dark text-center text-white">
-        <p class="mt-4 text-white-50" style="font-size: 0.95rem;">© {{ year|default:"2025" }} Almacén Loayza. Todos los derechos reservados.</p>
-        <a href="{% url 'admin_login' %}" class="link-light small">Acceso administrativo</a>
+      <p class="mt-4 text-white-50" style="font-size: 0.95rem">
+        © {{ year|default:"2025" }} Almacén Loayza. Todos los derechos
+        reservados.
+      </p>
+      <a href="{% url 'admin_login' %}" class="link-light small"
+        >Acceso administrativo</a>
     </footer>
-
-
-
-    <!-- Bootstrap JS Bundle (incluye Popper) -->
+    <script async src="//www.instagram.com/embed.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Tu JS personalizado -->
     <script src="{% static 'js/scripts.js' %}"></script>
-    <a href="https://wa.link/v9hpk1" target=”_blank” class="whatsapp-btn">
-    <i class="bi bi-whatsapp"></i>
+    {# for #} {# if redes.estado=True && redes.tipo='t' #} {% if redes_activas%} 
+    {% for red in redes_activas %} {% if red.tipo == 'w' %} 
+    {# --- BLOQUE PARA WHATSAPP --- #}
+    <a href="{{ red.url }}" target="_blank" class="whatsapp-btn">
+      <i class="bi bi-whatsapp"></i>
     </a>
-    <a href="https://www.instagram.com/loayza.ec/" class="btn-instagram" target="_blank">
-    <i class="bi bi-instagram"></i>
+    {% elif red.tipo == 't' %} {# --- BLOQUE PARA TIK TOK --- #}
+    <a href="{{ red.url }}" target="_blank" class="tiktok-btn">
+      <i class="bi bi-tiktok"></i>
     </a>
-    <a href="https://www.tiktok.com/" class="tiktok-btn" target="_blank">
-    <i class="bi bi-music-note"></i> 
+    {% elif red.tipo == 'i' %} {# --- BLOQUE PARA INSTAGRAM --- #}
+    <a href="{{ red.url }}" target="_blank" class="instagram-btn">
+      <i class="bi bi-instagram"></i>
     </a>
-</body>
+    {% elif red.tipo == 'y' %} {# --- BLOQUE PARA YOUTUBE --- #}
+    <a href="{{ red.url }}" target="_blank" class="youtube-btn">
+      <i class="bi bi-youtube"></i>
+    </a>
+    {% endif %} {% endfor %} {% endif %}
+  </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputBuscador = document.getElementById('input-buscador-global');
+    const listaSugerencias = document.getElementById('sugerencias-lista');
+
+    inputBuscador.addEventListener('input', function() {
+        const texto = this.value.trim();
+
+        if (texto.length > 1) { // Empieza a buscar cuando escribe 2 o más letras
+            fetch(`/api/autocomplete/?term=${texto}`)
+                .then(response => response.json())
+                .then(data => {
+                    listaSugerencias.innerHTML = ''; // Limpiamos la lista anterior
+                    if (data.length > 0) {
+                        listaSugerencias.classList.remove('d-none'); // Mostramos la lista
+                        data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2';
+                            li.style.cursor = 'pointer';
+                            li.innerHTML = `
+                                <span><i class="bi bi-search me-2 text-muted small"></i>${item.nombre}</span>
+                                <span class="badge bg-light text-dark shadow-sm">$${item.precio}</span>
+                            `;
+                            
+                            // Si hace clic en la sugerencia, va directo al producto
+                            li.onclick = () => {
+                                window.location.href = `/producto/${item.id}/`;
+                            };
+                            listaSugerencias.appendChild(li);
+                        });
+                    } else {
+                        listaSugerencias.classList.add('d-none');
+                    }
+                });
+        } else {
+            listaSugerencias.classList.add('d-none');
+        }
+    });
+
+    // Cerrar la lista si el usuario hace clic en otro lado de la pantalla
+    document.addEventListener('click', function(e) {
+        if (!inputBuscador.contains(e.target) && !listaSugerencias.contains(e.target)) {
+            listaSugerencias.classList.add('d-none');
+        }
+    });
+});
+</script>

@@ -1,40 +1,51 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
-from .models import Categoria, Producto
 from django.core.paginator import Paginator
-from .forms import ProductoForm  # Si vas a usar un ModelForm (puedes crearlo después)
-from .forms import CategoriaForm
-from .models import Pedido, DetallePedido
-
-
+from .forms import ProductoForm, CategoriaForm, NoticiaForm, MarcasForm, CarruselInicioForm, UserForm
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
-from .models import Pedido, Producto, Cliente, Categoria
+from .models import Producto, Cliente, Categoria, Noticias, Pedido, DetallePedido, Carrusel_inicio, Marcas, Redes, ConfiguracionSitio, InformacionEmpresa, User
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Sum
-
 import json
+import re
 from django.db.models import Count
+from urllib.parse import quote # Importante para mostrar el texto del mensaje
+
+def admin_required(user):
+    return user.is_authenticated and user.is_staff
 
 def inicio(request):
-    return render(request, 'inicio.html')
-
-
+    productos = Producto.objects.filter(pagina_inicio=True)    
+    noticias_activas = Noticias.objects.filter(pagina_inicio=True).order_by('-fecha_publicacion')
+    noticias_carrusel = Noticias.objects.filter(pagina_inicio=True).order_by('-fecha_publicacion')
+    slides = Carrusel_inicio.objects.filter(pagina_inicio=True).order_by('orden')
+    marcas_listado = Marcas.objects.filter(pagina_inicio=True).order_by('orden')
+    return render(request, 'inicio.html', 
+                  {'productos':productos,
+                   'noticias_activas': noticias_activas,
+                   'slides': slides,
+                   'noticias_carrusel': noticias_carrusel,
+                   'marcas_slides': marcas_listado
+                   })
 def categorias(request):
     categorias = Categoria.objects.all()
     return render(request, 'categorias.html', {'categorias': categorias})
 
-
+def about(request):
+    empresa = InformacionEmpresa.objects.filter(id=1).first()
+    return render(request, 'about.html', {'empresa': empresa})
 # ---------------------------- LOGGIN Y LOGGOUT  ----------------------------
 def admin_login(request):
     # Limpia la cola de mensajes SIEMPRE, incluso si vienes de un redirect con mensajes de admin
     # list(messages.get_messages(request))
-
     login_error = None  # <- Así, siempre existe la variable
     if request.method == 'POST':
         username = request.POST['username']
@@ -45,14 +56,12 @@ def admin_login(request):
             return redirect('admin_dashboard')  # Cambia este nombre por tu vista dashboard
         else:
             login_error = 'Usuario o contraseña incorrectos, o no tiene permisos de administrador.'
-
     return render(request, 'admin_login.html', {'login_error': login_error})
 
 def admin_logout(request):
     logout(request)
     list(messages.get_messages(request))  # Esto limpia los mensajes pendientes
     return redirect('admin_login')
-
 # ------------------- DASHBOARD -------------------------
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
@@ -69,7 +78,7 @@ def admin_dashboard(request):
     TOP_N = 5
     clientes_top = (
         Cliente.objects
-        .annotate(total_compras=Sum('pedido__total'))
+        .annotate(total_compras=Sum('pedidos_cliente__total'))
         .order_by('-total_compras')[:TOP_N]
     )
 
@@ -197,10 +206,6 @@ def admin_dashboard(request):
     }
     return render(request, 'admin_dashboard.html', context)
 
-def admin_required(user):
-    return user.is_authenticated and user.is_staff
-
-
 # ------------------- ADMIN DE PRODUCTOS -------------------------
 @login_required
 @user_passes_test(admin_required)
@@ -250,8 +255,6 @@ def admin_producto_eliminar(request, producto_id):
         producto.delete()
         return redirect('admin_productos')
     return render(request, 'admin_producto_confirmar_eliminar.html', {'producto': producto})
-
-
 
 
 # ------------------- ADMIN DE PEDIDOS -------------------------
@@ -384,7 +387,6 @@ def admin_cliente_detalle(request, cliente_id):
 #     return render(request, 'admin_cliente_eliminar_confirm.html', {'cliente': cliente})
 
 
-# ------------------- Funciones de agrgear carrito de compras -------------------------
 # LISTAR CATEGORÍAS
 def admin_categorias(request):
     categorias = Categoria.objects.all()
@@ -424,11 +426,7 @@ def admin_categoria_eliminar(request, categoria_id):
         return redirect('admin_categorias')
     return render(request, 'admin_categoria_eliminar.html', {'categoria': categoria})
 
-
-
-
 # ------------------- Funciones PRODUCTO Y CATEGORIAS -------------------------
-
 def categorias(request):
     categorias = Categoria.objects.all()
     return render(request, 'categorias.html', {'categorias': categorias})
@@ -442,10 +440,7 @@ def productos_categoria(request, categoria_id):
         'productos': productos
     })
 
-
-# ------------------- Funciones de agrear carrito de compras -------------------------
-
-
+# ------------------- Funcion de agregar carrito de compras -------------------------
 def carrito(request):
     carrito = request.session.get('carrito', {})
     productos = []
@@ -566,10 +561,7 @@ def comprar(request):
                 'mensaje': " ".join(errores_stock),
                 'cliente_datos': cliente_datos
             })
-
-
         # Buscar o crear cliente por cédula
-    
         if not cedula:
             mensaje = "Debe ingresar la cédula."
             # Devolver los datos que ya puso el usuario
@@ -641,14 +633,50 @@ def comprar(request):
         'cliente_datos': cliente_datos
     })
 
-
-
 def about(request):
     return render(request, 'about.html')
 
+#---------- Configuracion del buscador ---------------#
 
+def buscar_productos(request):
+    query = request.GET.get('q')
+    productos = []
+    if query:
+        # Esto busca en nombre, descripción y categoría
+        productos = Producto.objects.filter(
+            Q(nombre__icontains=query) | 
+            Q(descripcion__icontains=query) | 
+            Q(categoria__nombre__icontains=query) 
+        ).distinct()
+    
+    context = {
+        'query': query,
+        'productos': productos,
+        # Importante: categorías_menu para que el dropdown de tu navbar no se vacíe
+        'categorias_menu': Categoria.objects.all(), 
+    }
+    return render(request, 'search_results.html', context)
 
+def producto_detalle(request, producto_id):
+    """Muestra la página de detalle de un producto específico"""
+    producto = get_object_or_404(Producto, id=producto_id)
+    return render(request, 'producto_detalle.html', {'producto': producto})
 
+#--------------Autocompletado del buscador -----------#
+def autocomplete_productos(request):
+    term = request.GET.get('term', '')
+    # Buscamos coincidencias en el nombre, limitando a los mejores 8 resultados
+    productos = Producto.objects.filter(nombre__icontains=term)[:8]
+    
+    # Preparamos los datos que necesita el JavaScript
+    data = []
+    for p in productos:
+        data.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio': str(p.precio)
+        })
+    return JsonResponse(data, safe=False)
 
 # ------------------- Admin pedidos -------------------------
 
@@ -662,3 +690,287 @@ def admin_pedidos(request):
 
     # Opcional: podrías paginar si hay muchos pedidos
     return render(request, 'admin_pedidos.html', {'pedidos': pedidos})
+
+# ------------------- ADMIN DE NOTICIAS -------------------------
+# CREAR NOTICIA
+@login_required
+@user_passes_test(admin_required)
+def admin_noticia_crear(request):
+    """Crea una nueva noticia."""
+    if request.method == "POST":
+        # Manejar archivos (imagen) con request.FILES
+        form = NoticiaForm(request.POST, request.FILES) 
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Noticia creada correctamente.")
+            return redirect('admin_carrusel_gestion')
+
+# EDITAR NOTICIA
+@login_required
+@user_passes_test(admin_required)
+def admin_noticia_editar(request, noticia_id):
+    """Edita una noticia existente."""
+    noticia = get_object_or_404(Noticias, id=noticia_id)
+    if request.method == "POST":
+        # Pasar 'instance' para actualizar el objeto existente
+        # Manejar archivos (imagen) con request.FILES
+        form = NoticiaForm(request.POST, request.FILES, instance=noticia) 
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Noticia actualizada correctamente.")
+            return redirect('admin_carrusel_gestion')
+
+# ELIMINAR NOTICIA
+@login_required
+@user_passes_test(admin_required)
+@require_POST  # <--- ESTO ES VITAL: Solo permite borrar vía formulario POST
+def admin_noticia_eliminar(request, noticia_id):
+    noticia = get_object_or_404(Noticias, id=noticia_id)
+    if request.method == 'POST':
+        try:
+            noticia.delete()
+            messages.success(request, f'La noticia "{noticia.titulo}" ha sido eliminada exitosamente.')
+            # Redirigir a la lista de noticias
+            return redirect('admin_carrusel_gestion')
+        except Exception as e:
+            # Manejo de errores (p.ej., si hay un problema con la DB)
+            messages.error(request, f'Error al eliminar la noticia: {e}')
+            return redirect('admin_carrusel_gestion')
+
+# ------------------- ADMIN DE MARCAS TOP -------------------------
+@login_required
+@user_passes_test(admin_required)
+def admin_marcas_eliminar(request, marca_id):
+    if request.method == 'POST':
+        marca = get_object_or_404(Marcas, id=marca_id)
+        marca.delete()
+        messages.success(request, f"Marca '{marca.nombre}' eliminada correctamente.")
+        return redirect('admin_carrusel_gestion')
+
+# ------------------- ADMIN DE REDES SOCIALES -------------------------
+def toggle_red_social(request, red_id):
+    if request.method == 'POST':
+        red = get_object_or_404(Redes, id=red_id)
+        red.estado = not red.estado
+        red.save()
+    return redirect('admin_carrusel_gestion')
+
+@login_required
+@user_passes_test(admin_required)
+def toggle_redes_global(request):
+    if request.method == 'POST':
+        # Buscamos la configuración única del sitio (ID=1)
+        config, created = ConfiguracionSitio.objects.get_or_create(id=1)
+        # Cambiamos el estado booleano
+        config.redes_activas = not config.redes_activas
+        config.save()
+        messages.success(request, f"Visibilidad global: {'Activada' if config.redes_activas else 'Desactivada'}")
+    return redirect('admin_carrusel_gestion')
+
+# ------------------- ADMIN DE CARRUSELES -------------------------
+@login_required
+@user_passes_test(admin_required)
+def admin_carrusel_gestion(request, slide_id=None):
+    # 1. Carga de instancias para edición (GET)
+    slide = get_object_or_404(Carrusel_inicio, id=slide_id) if slide_id else None
+    marca_id = request.GET.get('edit_marca')
+    marca_instancia = get_object_or_404(Marcas, id=marca_id) if marca_id else None
+    noticia_id = request.GET.get('edit_noticia')
+    noticia_instancia = get_object_or_404(Noticias, id=noticia_id) if noticia_id else None
+
+    # 2. PROCESAMIENTO DE FORMULARIOS (POST)
+    if request.method == 'POST':
+        # --- LÓGICA PARA NOTICIAS ---
+        if 'btn_guardar_noticia' in request.POST:
+            id_post = request.POST.get('noticia_id_hidden')
+            instancia_post = get_object_or_404(Noticias, id=id_post) if id_post else None
+            form_noticia = NoticiaForm(request.POST, request.FILES, instance=instancia_post)
+            if form_noticia.is_valid():
+                form_noticia.save()
+                messages.success(request, "Noticia guardada con éxito.")
+                return redirect('admin_carrusel_gestion')
+
+        # --- LÓGICA PARA SLIDES ---
+        elif 'btn_guardar_slide' in request.POST:
+            form_slide = CarruselInicioForm(request.POST, request.FILES, instance=slide)
+            if form_slide.is_valid():
+                form_slide.save()
+                messages.success(request, "Slide principal guardado.")
+                return redirect('admin_carrusel_gestion')
+
+        # --- LÓGICA PARA MARCAS (CORREGIDA) ---
+        elif 'btn_guardar_marca' in request.POST:
+            # Usamos marca_instancia (la variable de la línea 757)
+            form_marca = MarcasForm(request.POST, request.FILES, instance=marca_instancia)
+            if form_marca.is_valid():
+                form_marca.save()
+                messages.success(request, "Marca actualizada." if marca_instancia else "Marca creada.")
+                return redirect('admin_carrusel_gestion')
+
+    # 3. PREPARACIÓN DE FORMULARIOS PARA EL CONTEXTO (GET o errores de validación)
+    # Si no es POST, inicializamos los formularios con las instancias correspondientes
+    form_noticia = NoticiaForm(instance=noticia_instancia)
+    form_slide = CarruselInicioForm(instance=slide)
+    form_marca = MarcasForm(instance=marca_instancia)
+
+    # 4. CARGA DE DATOS PARA LAS TABLAS
+    noticias_listado = Noticias.objects.all().order_by('-fecha_publicacion')
+    slides = Carrusel_inicio.objects.all().order_by('orden')
+    marcas_listado = Marcas.objects.all().order_by('orden')
+    redes = Redes.objects.all()
+    empresa_info = InformacionEmpresa.objects.filter(id=1).first()
+    config_global, created = ConfiguracionSitio.objects.get_or_create(id=1)
+
+    context = {
+        'form': form_slide,
+        'marcas_form': form_marca,
+        'noticia_form': form_noticia,
+        'noticia_editando': noticia_instancia,
+        'slides': slides,
+        'marcas_slides': marcas_listado,
+        'redes': redes,
+        'noticias': noticias_listado,
+        'config_global': config_global,
+        'empresa': empresa_info,
+        'titulo_form': "Editar Slide" if slide else "Añadir Nuevo Slide",
+        'titulo_marcas_form': "Editar Marca" if marca_instancia else "Añadir Nueva Marca",
+    }
+    return render(request, 'admin_inicio_usuario.html', context)
+
+# Funcion de eliminar imagenes del carrusel principal#
+@login_required
+@user_passes_test(admin_required)
+def admin_carrusel_eliminar(request, slide_id):
+    slide = get_object_or_404(Carrusel_inicio, id=slide_id)
+    if request.method == 'POST':
+        slide.delete()
+        messages.success(request, f"Slide '{slide.nombre}' eliminado correctamente.")
+        return redirect('admin_carrusel_gestion')        
+
+# Funcion de eliminar imagenes del carrusel MARCAS TOP#
+@login_required
+@user_passes_test(admin_required)
+def admin_marcas_eliminar(request, marca_id):
+    marca = get_object_or_404(Marcas, id=marca_id)
+    if request.method == 'POST':
+        marca.delete()
+        messages.success(request, f"Marca '{marca.nombre}' eliminada correctamente.")
+        return redirect('admin_carrusel_gestion') # Redirigimos a la vista unificada
+
+
+# ------------------- CRUD REDES SOCIALES  -------------------------
+@login_required
+@user_passes_test(admin_required)
+def admin_red_agregar(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        tipo = request.POST.get('tipo')
+        url_input = request.POST.get('url')
+        if tipo == 'w':
+            # Definimos 'numero' limpiando el input
+            numero = re.sub(r'\D', '', url_input) 
+            # Preparamos el mensaje
+            mensaje = quote("Hola, Deseo más información")
+            # Usamos la variable 'numero' que definimos arriba
+            url_final = f"https://wa.me/{numero}?text={mensaje}"
+        else:
+            url_final = url_input
+        Redes.objects.create(nombre=nombre, tipo=tipo, url=url_final, estado=True)
+        messages.success(request, f"La red '{nombre}' ha sido agregada.")
+    return redirect('admin_carrusel_gestion')
+
+@login_required
+@user_passes_test(admin_required)
+def admin_red_editar(request, red_id):
+    red = get_object_or_404(Redes, id=red_id)
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo')
+        url_input = request.POST.get('url')
+        
+        red.nombre = request.POST.get('nombre')
+        red.tipo = tipo
+        
+        if tipo == 'w':
+            # Solo generamos el link si el usuario mandó un número (no una URL completa)
+            if "wa.me" not in url_input:
+                numero = re.sub(r'\D', '', url_input)
+                mensaje = quote("Hola, Deseo mas informacion")
+                red.url = f"https://wa.me/{numero}?text={mensaje}"
+            else:
+                red.url = url_input
+        else:
+            red.url = url_input
+            
+        red.save()
+        messages.success(request, f"{red.nombre} actualizada correctamente.")
+    return redirect('admin_carrusel_gestion')
+
+@login_required
+@user_passes_test(admin_required)
+def admin_red_eliminar(request, red_id):
+    red = get_object_or_404(Redes, id=red_id)
+    if request.method == 'POST':
+        nombre = red.nombre
+        red.delete()
+        messages.success(request, f"La red '{nombre}' fue eliminada.")
+    return redirect('admin_carrusel_gestion')
+
+#------ Edita la informacion de la empresa ------#
+@login_required
+@user_passes_test(admin_required)
+def admin_empresa_guardar(request):
+    if request.method == 'POST':
+        empresa = InformacionEmpresa.objects.filter(id=1).first()
+        if not empresa:
+            empresa = InformacionEmpresa(id=1)
+        empresa.nombre = request.POST.get('nombre', 'Mi Empresa')
+        empresa.telefono = request.POST.get('telefono')
+        empresa.correo = request.POST.get('correo')
+        empresa.mapa_iframe = request.POST.get('mapa_iframe')
+        empresa.direccion = request.POST.get('direccion')
+        if request.FILES.get('logo'):
+            empresa.logo = request.FILES.get('logo')
+        empresa.save()
+        messages.success(request, "Información actualizada correctamente.")
+    return redirect('admin_carrusel_gestion')
+
+# ------------------- GESTIÓN DE USUARIOS ADMINISTRATIVOS -------------------------# 
+@login_required
+@user_passes_test(admin_required)
+def crear_usuario_admin(request):
+    if request.method == 'POST':
+        # Pasamos request.POST y request.FILES para procesar la imagen
+        form = UserForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.is_staff = True 
+            user.save()
+            form.save_m2m()
+            messages.success(request, f"El usuario '{user.username}' ha sido creado exitosamente.")
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, "Por favor corrija los errores en el formulario.")
+    else:
+        form = UserForm()
+        usuarios = User.objects.filter(is_staff=True).order_by('-date_joined')
+    return render(request, 'admin_crear_administrador.html', {
+        'form': form,
+        'usuarios': usuarios, # Enviamos la lista a la plantilla 
+        'titulo': 'Registrar Nuevo Usuario Administrativo'
+    })
+login_required
+@user_passes_test(admin_required)
+def toggle_usuario_status(request, user_id):
+    # Buscamos al usuario, si no existe lanza error 404
+    usuario = get_object_or_404(User, id=user_id)
+    # Seguridad: Evitar que el admin se desactive a sí mismo por accidente
+    if usuario == request.user:
+        messages.error(request, "No puedes desactivar tu propia cuenta.")
+    else:
+        usuario.is_active = not usuario.is_active # Si es True pasa a False, y viceversa
+        usuario.save()
+        estado = "activado" if usuario.is_active else "desactivado"
+        messages.info(request, f"El usuario {usuario.username} ha sido {estado}.")
+    
+    return redirect('crear_usuario_admin')

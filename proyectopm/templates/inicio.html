@@ -1,45 +1,217 @@
-{% extends "base.html" %}
-
-{% load static %}
+{% extends "base.html" %} 
+{% load static %} 
 {% block contenido %}
 <style>
-.carousel-inner img {
-    max-height: 350px;
-    width: auto;
-    margin: 0 auto;
-    object-fit: contain;
-}
+  #carouselInicio .carousel-inner {
+    height: 400px; /* Forzamos la altura aquí */
+    background-color: #ffffff; /* Fondo blanco para que los espacios vacíos */
+  }
+  #carouselInicio .carousel-item {
+    height: 100%; /* Altura del carrusel */
+  }
+  #carouselInicio .carousel-inner img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain; /* Ajusta la imagen sin cortarla */
+    object-position: center;
+  }
 </style>
-<div class="container mt-5">
-    <!-- Texto ARRIBA del carrusel -->
-    <h1 class="text-center mb-3" style="color: #c40000; font-weight: bold;">¡Bienvenido a Almacén Loayza!</h1>
-    <!-- CARRUSEL Bootstrap 5 -->
-    <div id="carouselInicio" class="carousel slide mb-4" data-bs-ride="carousel" data-bs-interval="3500">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="{% static 'img/carruselalmacenloayza.png' %}" class="d-block w-100 rounded shadow" alt="Imagen 1">
-            </div>
-            <div class="carousel-item">
-                <img src="{% static 'img/edificioloayza.jpeg' %}" class="d-block w-100 rounded shadow" alt="Imagen 2">
-            </div>
-            <div class="carousel-item">
-                <img src="{% static 'img/carruselimagen3.jpeg' %}" class="d-block w-100 rounded shadow" alt="Imagen 3">
-            </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselInicio" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-            <span class="visually-hidden">Anterior</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselInicio" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-            <span class="visually-hidden">Siguiente</span>
-        </button>
+<div class="container mt-0 pt-0">
+   
+  <!-- Texto ARRIBA del carrusel -->
+   
+  <h1 class="text-center mb-2" style="color: #c40000; font-weight: bold">
+        ¡Bienvenidos a Almacenes Loayza!  
+  </h1>
+   
+  <!-- CARRUSEL PRINICPAL Bootstrap 5 -->
+   
+  <div
+    id="carouselInicio"
+    class="carousel slide mb-0"
+    data-bs-ride="carousel"
+    data-bs-interval="3500"
+  >
+    <div class="carousel-indicators">
+      {% for slide in slides %}
+      <button
+        type="button"
+        data-bs-target="#carouselInicio"
+        data-bs-slide-to="{{ forloop.counter0 }}"
+        class="{% if forloop.first %}active{% endif %}"
+        aria-current="{% if forloop.first %}true{% endif %}"
+        aria-label="Slide {{ forloop.counter }}"
+      ></button>
+      {% endfor %}
     </div>
-    <!-- Texto DEBAJO del carrusel -->
-    <h2 class="text-center mb-4" style="color: #c40000; font-weight: bold;">¡Encuentra los mejores electrodomésticos!</h2>
-
-    <div class="text-center">
-        <a class="btn btn-primary btn-lg" href="{% url 'categorias' %}">Ver categorías</a>
+    <div class="carousel-inner">
+      {% for slide in slides %}      
+      <div class="carousel-item {% if forloop.first %}active{% endif %}">
+        <img
+          src="{{ slide.imagen.url }}"
+          class="d-block w-100 rounded shadow"
+          alt="{{ slide.nombre|default:'Imagen de Almacenes Loayza' }}"
+        />
+      </div>
+      {% empty %}
+      <div class="carousel-item active">
+        <img
+          src="{% static 'img/edificioloayza.jpeg' %}"
+          class="d-block w-100 rounded shadow"
+        />
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    <button
+      class="carousel-control-prev"
+      type="button"
+      data-bs-target="#carouselInicio"
+      data-bs-slide="prev"
+    >
+           
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>      
+      <span class="visually-hidden">Anterior</span>    
+    </button>
+       
+    <button
+      class="carousel-control-next"
+      type="button"
+      data-bs-target="#carouselInicio"
+      data-bs-slide="next"
+    >
+           
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>      
+      <span class="visually-hidden">Siguiente</span>    
+    </button>
+     
+  </div>
+   
+  <!-- Texto DEBAJO del carrusel -->
+   
+  <h2 class="text-center mb-0 mt-0" style="color: #c40000; font-weight: bold">
+        ¡Encuentra los mejores electrodomésticos!  
+  </h2>
+   
+  <div class="text-center">
+       
+    <a class="btn btn-primary btn-lg" href="{% url 'categorias' %}"
+      >Ver categorías</a
+    >
+     
+  </div>
+</div>
+<div class="container mt-4">
+  <h2 class="text-center mb-4">✨ Destacados ✨</h2>
+  {% if productos %}
+  <div id="gallery">
+    {% for producto in productos|slice:":6" %} 
+    <div>
+      <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+      <a href="#lightbox-{{ producto.id }}"> {{ producto.nombre }} </a>
+    </div>
+    {% endfor %}
+  </div>
+   {% for producto in productos|slice:":6" %}
+<div class="lightbox" id="lightbox-{{ producto.id }}">
+    <div class="content">
+        <img src="{{ producto.imagen.url }}"/>
+        <div class="product-info-box">
+            <div class="product-info-line">
+                <div class="title-inline">{{ producto.nombre }}</div> 
+                <span class="price-detail ms-3 me-3">
+                Precio: ${{ producto.precio|default:"N/A" }}
+            </span>
+            <span class="rating-detail ">
+                Rating:
+                {% with rating=producto.rating|floatformat:0|default:5|add:0 %}
+                {% for i in "12345" %}
+                            {% if forloop.counter <= rating %}
+                                ⭐
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
+            </span>
+            <a href="{{ link_whatsapp_global }}%20sobre%20el%20producto:%20{{ producto.nombre|urlencode }}" 
+            target="_blank" 
+            class="btn btn-success mt-3 whatsapp-btn-lightbox">
+            <i class="fab fa-whatsapp"></i> Obtener más información
+            </a>
+            </div>
+            <a class="close" href="#gallery"></a>
+        </div>
     </div>
 </div>
-{% endblock %}
+{% endfor %}
+  {% else %}
+  <p class="text-center">No hay productos destacados para mostrar.</p>
+  {% endif %}
+<div class="container mt-4 mb-0">
+  <h2 class="text-center mb-4">MARCAS TOP</h2>
+
+  <div class="scrolling-carousel-wrapper">
+    <button class="carousel-arrow left-arrow" aria-label="Anterior">❮</button>
+    <div class="scrolling-carousel-container">
+      <div class="scrolling-carousel">
+        {% for marca in marcas_slides %}
+          <div class="brand-logo-item">
+            {% if marca.imagen %}
+              <img src="{{ marca.imagen.url }}" alt="{{ marca.nombre }}" title="{{ marca.nombre }}" />
+            {% else %}
+              <span class="fw-bold">{{ marca.nombre }}</span>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="text-muted">Cargando marcas...</p>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="carousel-arrow right-arrow" aria-label="Siguiente">❯</button>
+  </div>
+</div>
+<div class="container mt-4 mb-5">
+  <h2 class="pb-2 border-bottom text-center">Últimas Noticias</h2>
+  {% if noticias_activas %}
+    <div class="noticias-slider mt-4"> 
+      {% for noticia in noticias_activas %}
+        <div class="px-3"> <div class="card h-100 shadow-sm border-0 bg-light">
+            <div class="card-body">
+              <div class="noticia-embed-wrapper overflow-hidden" style="max-height: 500px;">
+                {{ noticia.contenido | safe }}
+              </div>
+             
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center mt-4">No hay noticias activas para mostrar.</p>
+  {% endif %}
+</div>
+</div>
+<script>
+$(document).ready(function(){
+    $('.noticias-slider').slick({
+        infinite: true,
+        slidesToShow: 2,      // Cambiado de 3 a 2
+        slidesToScroll: 1,    // Se desplaza de uno en uno para mejor fluidez
+        autoplay: true,
+        autoplaySpeed: 4000,  // 4 segundos para que dé tiempo a leer ambos
+        dots: true,
+        arrows: false,
+        responsive: [
+            {
+                breakpoint: 768, // En tablets pequeñas y celulares
+                settings: {
+                    slidesToShow: 1,
+                    arrows: false // Se muestra solo 1 para que no se vea amontonado
+                }
+            }
+        ]
+    });
+});
+</script>
+{% endblock contenido %}

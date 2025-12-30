@@ -1,49 +1,76 @@
 <!-- about.html -->
-{% extends "base.html" %}
-{% load static %}
-
-{% block contenido %}
+{% extends "base.html" %} {% load static %} {% block contenido %}
 <div class="container py-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6 mb-3 mb-md-0">
-            <img src="{% static 'img/edificioloayza.jpeg' %}" class="img-fluid rounded shadow w-100" alt="Almacén Loayza" style="max-width:500px; max-height:340px; object-fit:cover;">
-        </div>
-        <div class="col-md-6 text-center text-md-start">
-            <h1 class="display-5" style="color: #c40000; font-weight: bold;">Sobre Nosotros</h1>
-            <p class="lead mb-3">Desde hace más de 20 años, <b>Almacén Loayza</b> es tu destino preferido para electrodomésticos y tecnología en Machala. Nos apasiona ayudarte a mejorar tu hogar con los mejores productos, siempre con atención personalizada y precios competitivos.</p>
-            <p>Somos una empresa familiar que apuesta por la honestidad, la confianza y la innovación. Miles de clientes satisfechos nos avalan.</p>
-        </div>
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6 mb-3 mb-md-0">
+      <img
+        src="{% static 'img/empresaloayzaexp.jpg' %}"
+        class="img-fluid rounded shadow w-100"
+        alt="Almacén Loayza"
+        style="max-width: 300px; max-height: 350px; object-fit: cover"
+      />
     </div>
-
-    <div class="row my-5">
-        <div class="col-lg-4 text-center mb-4">
-            <i class="bi bi-star-fill display-4 text-warning mb-2"></i>
-            <h5>Calidad Garantizada</h5>
-            <p>Trabajamos con las mejores marcas del mercado. Cada producto es revisado antes de ser entregado.</p>
-        </div>
-        <div class="col-lg-4 text-center mb-4">
-            <i class="bi bi-people-fill display-4 text-primary mb-2"></i>
-            <h5>Atención Personalizada</h5>
-            <p>Te asesoramos en cada paso de tu compra, online y en tienda física. ¡Tu satisfacción es nuestra meta!</p>
-        </div>
-        <div class="col-lg-4 text-center mb-4">
-            <i class="bi bi-shield-lock-fill display-4 text-success mb-2"></i>
-            <h5>Compra Segura</h5>
-            <p>Tus datos y tu dinero están protegidos. Compra fácil y sin preocupaciones, ¡nosotros te respaldamos!</p>
-        </div>
+    <div class="col-md-6 text-center text-md-start">
+      <h1 class="display-5" style="color: #c40000; font-weight: bold">
+        Sobre Nosotros
+      </h1>
+      <p class="lead mb-3">
+        Desde hace más de 20 años, <b>Almacén Loayza</b> es tu destino preferido
+        para electrodomésticos y tecnología en Machala. Nos apasiona ayudarte a
+        mejorar tu hogar con los mejores productos, siempre con atención
+        personalizada y precios competitivos.
+      </p>
+      <p>
+        Somos una empresa familiar que apuesta por la honestidad, la confianza y
+        la innovación. Miles de clientes satisfechos nos avalan.
+      </p>
     </div>
-
-    <div class="bg-light rounded-3 p-4 mt-5 text-center">
-        <h5 class="mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> ¿Dónde estamos?</h5>
-        <p class="mb-1"><b>Dirección:</b> Rocafuerte entre Tarqui y Junin, Machala, Ecuador</p>
-        <p class="mb-1"><b>Teléfono:</b> 07-2934-568 / 0998765432</p>
-        <p><b>Email:</b> ventas@almacenloayza.com</p>
-        <!-- <div class="d-flex justify-content-center">
+  </div>
+  <div class="row my-5">
+    <div class="col-lg-4 text-center mb-4">
+      <i class="bi bi-star-fill display-4 text-warning mb-2"></i>
+      <h5>Calidad Garantizada</h5>
+      <p>
+        Trabajamos con las mejores marcas del mercado. Cada producto es revisado
+        antes de ser entregado.
+      </p>
+    </div>
+    <div class="col-lg-4 text-center mb-4">
+      <i class="bi bi-people-fill display-4 text-primary mb-2"></i>
+      <h5>Atención Personalizada</h5>
+      <p>
+        Te asesoramos en cada paso de tu compra, online y en tienda física. ¡Tu
+        satisfacción es nuestra meta!
+      </p>
+    </div>
+    <div class="col-lg-4 text-center mb-4">
+      <i class="bi bi-shield-lock-fill display-4 text-success mb-2"></i>
+      <h5>Compra Segura</h5>
+      <p>
+        Tus datos y tu dinero están protegidos. Compra fácil y sin
+        preocupaciones, ¡nosotros te respaldamos!
+      </p>
+    </div>
+  </div>
+  <div class="bg-light rounded-3 p-4 mt-5 text-center">
+    <h5 class="mb-2">
+      <i class="bi bi-geo-alt-fill text-danger"></i> ¿Dónde estamos?
+    </h5>
+    <p>
+        <strong>Dirección:</strong> {{ config_global.direccion|default:"Rocafuerte entre Tarqui y Junin" }}
+    </p>
+    <p>
+        <strong>Teléfono:</strong> {{ config_global.telefono|default:"0968264823" }}
+    </p>
+    <p>
+        <strong>Email:</strong> {{ config_global.correo|default:"loayzarocafuerte@gmail.com" }}
+    </p>
+    <!-- <div class="d-flex justify-content-center">
             <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.3565933091113!2d-79.95997322601022!3d-3.2613244409724764!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x90330f9791c17dab%3A0xd8a620adb438ec0a!2sAlmacenes%20Loayza%20Rocafuerte!5e0!3m2!1ses!2sec!4v1749776005560!5m2!1ses!2sec"
                 width="320" height="220" style="border:0;" allowfullscreen="" loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div> -->
-    </div>
+  </div>
 </div>
-{% endblock %}
+{% endblock %} {% block extra_content %} {% endblock extra_content %}

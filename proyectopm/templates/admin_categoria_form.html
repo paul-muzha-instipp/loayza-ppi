@@ -9,7 +9,6 @@
         <div class="card-body">
             <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
-
                 {# --- Vista previa de imagen actual solo si hay imagen y es edición --- #}
                 {% if form.instance.pk and form.instance.imagen %}
                     <div class="mb-4 text-center">

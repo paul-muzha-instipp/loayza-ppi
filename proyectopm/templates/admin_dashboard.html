@@ -1,12 +1,12 @@
 
 {% extends "base_admin.html" %}
-
 {% block contenido %}
 <div class="container mt-3">
     <h1 class="text-center mb-3" style="color:#c40000;">Panel Administrativo</h1>
-
     <!-- Botones de navegación -->
     <div class="text-center mb-4">
+        <a class="btn btn-primary mx-2 mb-2" href="{% url 'crear_usuario_admin' %}">Ingreso Usuario</a>
+        <a class="btn btn-primary mx-2 mb-2" href="{% url 'admin_carrusel_gestion' %}">Administracion Pagina</a>
         <a class="btn btn-primary mx-2 mb-2" href="{% url 'admin_productos' %}">Productos</a>
         <a class="btn btn-primary mx-2 mb-2" href="{% url 'admin_categorias' %}">Categorías</a>
         <a class="btn btn-primary mx-2 mb-2" href="{% url 'admin_pedidos' %}">Pedidos</a>
@@ -185,16 +185,10 @@
         }
     });
 
-
-
-
     // (Coloca esto ANTES de new Chart(...))
-
-
     console.log("Meses:", {{ meses_labels|safe }}.concat({{ meses_futuro|safe }}));
     console.log("Ventas reales:", {{ ventas_mes|safe }});
     console.log("Predicción:", Array({{ ventas_mes|length }}).fill(null).concat({{ y_pred|safe }}));
-
 
     // Debug antes
     console.log("ventas_mes length:", {{ ventas_mes|safe }}.length);
@@ -265,7 +259,6 @@
             plugins: { legend: { display: false } }
         }
     });
-
 
 </script>
 {% endblock %}
